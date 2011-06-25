@@ -21,13 +21,21 @@ class JSONWSP:
     def __init__(self, url):
         self.url = url
         self.funcurl = url + '/jsonwsp'
-    
+        self.desc = None
     def description(self):
         """Return dict with methods and they descriptions"""
-        req = requests.get(self.funcurl + '/description')
-        if req.ok:
-            return json.loads(req.content)
-        raise JSONWSPError('Wrong url or something with a server')
+        if self.desc == None:
+            req = requests.get(self.funcurl + '/description')
+            if req.ok:
+                self.desc = json.loads(req.content)
+                return self.desc
+            raise JSONWSPError('Wrong url or something with a server')
+        else:
+            return self.desc
+    def __iter__(self):
+        return iter(self.__dir__)
+    def __dir__(self):
+        return self.description()['methods'].keys()        
     def __getattr__(self, name):
         def w(**args):
             req = requests.post(self.funcurl, 
@@ -45,6 +53,5 @@ class JSONWSP:
         return w
 
 if __name__ == '__main__':
-    cl = JSONWSP('http://127.0.0.1:8080/EpubBuilder')
-    pprint(cl.description()['methods'])
-    print (cl.build(a=[1,2,3]))
+    cl = JSONWSP('http://127.0.0.1:8090/EpubBuilder')
+    print dir(cl)
